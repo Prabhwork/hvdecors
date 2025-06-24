@@ -1,0 +1,325 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { Form, FormGroup } from "reactstrap";
+import { useSelector } from "react-redux";
+import { useParams, useNavigate } from "react-router-dom";
+import "./BookingForm.css";
+
+const BookingForm = () => {
+  const user = useSelector((state) => state.user);
+  const { name = "", email = "", phoneno: phoneNumber = "" } = user || {};
+  const { bikeName } = useParams();
+  const navigate = useNavigate();
+
+  const [bikeDetails, setBikeDetails] = useState({
+    bikeModel: "",
+    bikePrice: "",
+    bikeName: ""
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [fromStation, setFromStation] = useState("");
+  const [toStation, setToStation] = useState("");
+  const [journeyDate, setJourneyDate] = useState("");
+  const [journeyTime, setJourneyTime] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
+  const [additionalInfo, setAdditionalInfo] = useState("");
+  const [minDate, setMinDate] = useState("");
+  const [minTime, setMinTime] = useState("");
+
+  const stations = [
+    "Connaught Place Station",
+    "Rajiv Chowk Metro Station",
+    "Kashmere Gate ISBT",
+    "New Delhi Railway Station",
+  ];
+
+  useEffect(() => {
+    const fetchBikeDetails = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8000/bikes/${bikeName}`);
+        if (response.data) {
+          setBikeDetails({
+            bikeModel: response.data.model,
+            bikePrice: response.data.price,
+            bikeName: response.data.bikeName
+          });
+        } else {
+          throw new Error("Bike not found");
+        }
+      } catch (err) {
+        console.error("Error fetching bike details:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBikeDetails();
+  }, [bikeName, navigate]);
+
+  useEffect(() => {
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0];
+    setMinDate(dateStr);
+    
+    if (journeyDate === dateStr) {
+      const hours = today.getHours().toString().padStart(2, '0');
+      const minutes = today.getMinutes().toString().padStart(2, '0');
+      setMinTime(`${hours}:${minutes}`);
+    } else {
+      setMinTime("00:00");
+    }
+  }, [journeyDate]);
+
+  const validateLicense = (license) => {
+    const licensePattern = /^[A-Z0-9]{10,15}$/i;
+    return licensePattern.test(license);
+  };
+
+  const validateDateTime = (date, time) => {
+    const now = new Date();
+    const selectedDateTime = new Date(`${date}T${time}`);
+    return selectedDateTime > now;
+  };
+
+  const calculateAmount = (price) => {
+    // Handle both string and number price formats
+    const numericValue = typeof price === 'string' 
+      ? parseInt(price.replace(/[^0-9]/g, ''), 10) 
+      : Number(price);
+    
+    if (isNaN(numericValue)) {
+      console.error("Invalid price value:", price);
+      return 0;
+    }
+    return numericValue * 100;
+  };
+
+  const submitHandler = async (event) => {
+    event.preventDefault();
+
+    if (!validateLicense(licenseNumber)) {
+      alert("Please enter a valid Driving License Number (10–15 alphanumeric characters).");
+      return;
+    }
+
+    if (!validateDateTime(journeyDate, journeyTime)) {
+      alert("Please select a future date and time for your booking.");
+      return;
+    }
+
+    const formData = {
+      user: { name, email, phoneNumber },
+      bike: { model: bikeDetails.bikeModel, price: bikeDetails.bikePrice },
+      stations: { pickup: fromStation, drop: toStation },
+      journey: { date: journeyDate, time: journeyTime },
+      licenseNumber,
+      additionalInfo,
+    };
+
+    try {
+      const amount = calculateAmount(bikeDetails.bikePrice);
+      const paymentResponse = await axios.post('http://localhost:8000/create-order', {
+        amount,
+      });
+
+      if (!paymentResponse.data) throw new Error("Payment order creation failed!");
+
+      const options = {
+        key: 'rzp_test_Syu8Zea6zXm8yN',
+        amount: paymentResponse.data.amount,
+        currency: paymentResponse.data.currency,
+        name: 'Bike Rental',
+        description: `Booking for ${bikeDetails.bikeModel}`,
+        order_id: paymentResponse.data.id,
+        handler: async function (response) {
+          try {
+            const bookingResponse = await axios.post("http://localhost:8000/add-booking", {
+              ...formData,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature
+            });
+
+            if (bookingResponse.status === 200) {
+              alert("Booking and Payment successful!");
+            } else {
+              throw new Error("Booking confirmation failed!");
+            }
+          } catch (error) {
+            console.error("Booking confirmation error:", error);
+            alert("Payment succeeded but booking failed. Contact support.");
+          }
+        },
+        prefill: { name, email, contact: phoneNumber },
+        notes: { pickup: fromStation },
+        theme: { color: "#3399cc" }
+      };
+
+      const rzp1 = new window.Razorpay(options);
+      rzp1.open();
+
+      rzp1.on('payment.failed', function (response) {
+        alert(`Payment failed: ${response.error.description}`);
+      });
+
+    } catch (error) {
+      console.error("Error:", error);
+      alert(`An error occurred: ${error.message || "Please try again later."}`);
+    }
+  };
+
+  if (loading) {
+    return <div className="booking-form-container">Loading bike details...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="booking-form-container">
+        <h2>Error Loading Bike Details</h2>
+        <p>{error}</p>
+        <button onClick={() => navigate("/bikes")} className="btn booking-btn">
+          Back to Bikes
+        </button>
+      </div>
+    );
+  }
+
+  if (!bikeName) {
+    return (
+      <div className="booking-form-container">
+        <h2>Invalid Bike Selection</h2>
+        <p>No bike was selected. Please choose a bike first.</p>
+        <button onClick={() => navigate("/bikes")} className="btn booking-btn">
+          Back to Bikes
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="booking-form-container">
+      <h2 className="booking-form-heading">Complete Your Booking</h2>
+      
+      <div className="bike-summary">
+        <h3>{bikeDetails.bikeName}</h3>
+        <p className="model">{bikeDetails.bikeModel}</p>
+        <p className="price">
+          {typeof bikeDetails.bikePrice === 'number' 
+            ? `₹${bikeDetails.bikePrice}/day` 
+            : bikeDetails.bikePrice}
+        </p>
+      </div>
+
+      <Form onSubmit={submitHandler} className="booking-form">
+        <div className="user-details-section">
+                        <h4>Your Details</h4>
+                        <div className="user-details-grid">
+                          <FormGroup>
+                            <input type="text" placeholder="Name" value={name} readOnly />
+                          </FormGroup>
+                          <FormGroup>
+                            <input type="email" placeholder="Email" value={email} readOnly />
+                          </FormGroup>
+                          <FormGroup>
+                            <input type="tel" placeholder="Phone" value={phoneNumber} readOnly />
+                          </FormGroup>
+                        </div>
+                      </div>
+              
+                      <div className="station-selection">
+                        <h4>Station Details</h4>
+                        <div className="station-grid">
+                          <FormGroup>
+                            <select
+                              value={fromStation}
+                              onChange={(e) => setFromStation(e.target.value)}
+                              required
+                            >
+                              <option value="">Pickup Station</option>
+                              {stations.map((station) => (
+                                <option key={`pickup-${station}`} value={station}>
+                                  {station}
+                                </option>
+                              ))}
+                            </select>
+                          </FormGroup>
+                          <FormGroup>
+                            <select
+                              value={toStation}
+                              onChange={(e) => setToStation(e.target.value)}
+                              required
+                            >
+                              <option value="">Drop Station</option>
+                              {stations.map((station) => (
+                                <option key={`drop-${station}`} value={station}>
+                                  {station}
+                                </option>
+                              ))}
+                            </select>
+                          </FormGroup>
+                        </div>
+                      </div>
+              
+                      <div className="datetime-selection">
+                        <h4>Journey Details</h4>
+                        <div className="datetime-grid">
+                          <FormGroup>
+                            <input
+                              type="date"
+                              min={minDate}
+                              value={journeyDate}
+                              onChange={(e) => setJourneyDate(e.target.value)}
+                              required
+                            />
+                          </FormGroup>
+                          <FormGroup>
+                            <input
+                              type="time"
+                              min={minTime}
+                              value={journeyTime}
+                              onChange={(e) => setJourneyTime(e.target.value)}
+                              required
+                            />
+                          </FormGroup>
+                        </div>
+                      </div>
+              
+                      <div className="license-section">
+                        <h4>Driving License</h4>
+                        <FormGroup>
+                          <input
+                            type="text"
+                            placeholder="Driving License Number"
+                            value={licenseNumber}
+                            onChange={(e) => setLicenseNumber(e.target.value)}
+                            required
+                          />
+                        </FormGroup>
+                      </div>
+              
+                      <div className="additional-info">
+                        <h4>Additional Information</h4>
+                        <FormGroup>
+                          <textarea
+                            rows={4}
+                            placeholder="Special requests or instructions"
+                            value={additionalInfo}
+                            onChange={(e) => setAdditionalInfo(e.target.value)}
+                          />
+                        </FormGroup>
+                      </div>
+              
+                      <div className="submit-section">
+          <button type="submit" className="btn booking-btn">
+            Pay Now {bikeDetails.bikePrice}
+          </button>
+        </div>
+      </Form>
+    </div>
+  );
+};
+
+export default BookingForm;

@@ -1,0 +1,46 @@
+/* Social Link Icon - Updated to match timber theme */
+.social__link-icon {
+  text-decoration: none;
+  color: #d4a762; /* Gold accent color */
+  font-weight: 500;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.social__link-icon:hover {
+  color: #8b5a2b; /* Darker wood tone on hover */
+}
+
+/* Contact Button - Updated to match theme */
+.contact__btn {
+  padding: 10px 20px;
+  background: #8b5a2b; /* Medium wood tone */
+  color: #e8d9c5; /* Cream text */
+  border: none;
+  outline: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  box-shadow: 0 2px 5px rgba(43, 33, 24, 0.1);
+}
+
+.contact__btn:hover {
+  background: #6b4518; /* Darker wood tone */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(43, 33, 24, 0.15);
+}
+
+/* Responsive Design */
+@media only screen and (max-width: 768px) {
+  .contact__btn {
+    margin-bottom: 30px;
+    font-size: 0.9rem;
+    padding: 8px 16px;
+  }
+  
+  .social__link-icon {
+    font-size: 1.1rem;
+  }
+}

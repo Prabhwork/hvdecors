@@ -1,0 +1,166 @@
+/* Timber Furniture Slider Theme */
+:root {
+  --wood-primary: #8b5a2b;
+  --wood-dark: #5e3a1f;
+  --wood-accent: #d4a762;
+  --wood-light: #f5f1eb;
+  --wood-text-dark: #3a2511;
+}
+
+/* === VIDEO BACKGROUND === */
+.hero-slider-wrapper {
+  position: relative;
+  overflow: hidden;
+  height: 730px;
+}
+
+.hero-video-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+  opacity: 0.8;
+}
+
+/* Optional dark overlay for readability */
+.hero-slider-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(5, 2, 0, 0.4); /* dark brown transparent overlay */
+  z-index: -1;
+}
+
+/* === SLIDER STYLING === */
+.hero__slider {
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+.slider__item {
+  width: 100%;
+  height: 700px;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+}
+
+.slider__item::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0,50 Q25,40 50,50 T100,50' fill='none' stroke='rgba(139,90,43,0.1)' stroke-width='2'/%3E%3C/svg%3E");
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.slider__content {
+  padding-top: 250px;
+  max-width: 650px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.slider__content h1 {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: var(--wood-light);
+  text-shadow: 0 2px 8px rgba(58, 37, 17, 0.4);
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+  font-family: 'Playfair Display', serif;
+}
+
+.slider__content p {
+  color: rgba(245, 241, 235, 0.9);
+  font-size: 1.2rem;
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+}
+
+.order__btn {
+  background: var(--wood-accent);
+  color: var(--wood-dark);
+  padding: 14px 35px;
+  border-radius: 50px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.4s ease;
+  box-shadow: 0 4px 15px rgba(58, 37, 17, 0.2);
+  display: inline-block;
+  border: 2px solid transparent;
+  font-family: 'Montserrat', sans-serif;
+  text-decoration: none;
+}
+
+.order__btn:hover {
+  background: transparent;
+  color: var(--wood-accent);
+  border-color: var(--wood-accent);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(58, 37, 17, 0.3);
+}
+
+/* === RESPONSIVE === */
+@media only screen and (max-width: 992px) {
+  .slider__item, .hero-slider-wrapper {
+    height: 100vh;
+  }
+
+  .slider__content {
+    padding-top: 250px;
+    max-width: 90%;
+  }
+
+  .slider__content h1 {
+    font-size: 3.5rem;
+  }
+
+  .slider__content p {
+    font-size: 1.8rem;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .slider__item, .hero-slider-wrapper {
+    height: 100vh;
+  }
+
+  .slider__content h1 {
+    font-size: 3.1rem;
+  }
+
+  .order__btn {
+    padding: 12px 30px;
+  }
+}
+
+@media only screen and (max-width: 606px) {
+  .slider__item, .hero-slider-wrapper {
+    height: 110vh;
+    width: 100%;
+    padding-top: 50px;
+  }
+
+  .slider__content h1 {
+    font-size: 2.5rem;
+  }
+
+  .slider__content {
+    padding-top: 120px;
+  }
+}
