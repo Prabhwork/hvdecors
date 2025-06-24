@@ -149,17 +149,3 @@
   }
 }
 
-@media (max-width: 576px) {
-  .single__member-img {
-    height: 200px;
-  }
-  
-  .single__member-social a {
-    width: 35px;
-    height: 35px;
-  }
-  
-  .single__member-social a i {
-    font-size: 1rem;
-  }
-}

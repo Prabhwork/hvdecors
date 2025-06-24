@@ -188,3 +188,7 @@
     transform: translateY(-8px) scale(1.02);
   }
 }
+@media (max-width: 567px) {
+.service__item {
+  width: 110%;
+}}

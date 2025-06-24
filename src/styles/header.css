@@ -166,16 +166,7 @@ body{
   }
 }
 
-@media (max-width: 576px) {
-  .dropdown-menu-custom {
-    width: 100vw;
-  }
-  .hamburger-menu {
- 
-  padding: 30px 50px;
-  
-}
-}
+
 
 .dropdown-menu-custom .close-icon {
   align-self: flex-end;
